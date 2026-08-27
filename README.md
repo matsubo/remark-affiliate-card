@@ -1,12 +1,11 @@
-# astro-affiliate-card
+# remark-affiliate-card
 
-[![npm](https://img.shields.io/npm/v/astro-affiliate-card?logo=npm&color=cb3837)](https://www.npmjs.com/package/astro-affiliate-card)
-[![CI](https://github.com/matsubo/astro-affiliate-card/actions/workflows/ci.yml/badge.svg)](https://github.com/matsubo/astro-affiliate-card/actions/workflows/ci.yml)
-[![astro](https://img.shields.io/badge/astro-%3E%3D4-BC52EE?logo=astro&logoColor=white)](https://astro.build)
-[![downloads](https://img.shields.io/npm/dm/astro-affiliate-card?color=1f6feb)](https://www.npmjs.com/package/astro-affiliate-card)
-[![license](https://img.shields.io/npm/l/astro-affiliate-card?color=444)](./LICENSE)
+[![npm](https://img.shields.io/npm/v/remark-affiliate-card?logo=npm&color=cb3837)](https://www.npmjs.com/package/remark-affiliate-card)
+[![CI](https://github.com/matsubo/remark-affiliate-card/actions/workflows/ci.yml/badge.svg)](https://github.com/matsubo/remark-affiliate-card/actions/workflows/ci.yml)
+[![downloads](https://img.shields.io/npm/dm/remark-affiliate-card?color=1f6feb)](https://www.npmjs.com/package/remark-affiliate-card)
+[![license](https://img.shields.io/npm/l/remark-affiliate-card?color=444)](./LICENSE)
 
-An Astro integration that renders Amazon product cards from a `::amazon`
+A remark plugin that renders Amazon product cards from a `::amazon`
 directive, with optional Rakuten and Yahoo! Shopping links alongside.
 
 ```markdown
@@ -25,35 +24,33 @@ depend on the API being up.
 ## Install
 
 ```sh
-bun add astro-affiliate-card remark-directive
+bun add remark-affiliate-card remark-directive
 ```
+
+Any unified pipeline can use it:
+
+```js
+import remarkDirective from 'remark-directive'
+import remarkParse from 'remark-parse'
+import affiliateCard from 'remark-affiliate-card'
+import { unified } from 'unified'
+
+unified().use(remarkParse).use(remarkDirective).use(affiliateCard, options)
+```
+
+`remark-directive` is yours to register: nothing parses `::amazon` on its own,
+and without it the directive reaches the page as literal text. Sites that only
+convert bare Amazon URLs (`bareUrls: true`) do not need it.
+
+### With Astro
+
+Astro 7's native Markdown processor runs no remark or rehype plugins, so a site
+whose Markdown depends on them declares the unified processor itself. This is
+the shape every site using this plugin is on:
 
 ```js
 // astro.config.mjs
-import affiliateCard from 'astro-affiliate-card'
-import remarkDirective from 'remark-directive'
-
-export default defineConfig({
-  markdown: { remarkPlugins: [remarkDirective] },
-  integrations: [affiliateCard()],
-})
-```
-
-The integration registers its own remark plugin and injects the stylesheet.
-`remark-directive` is yours to register: Astro does not parse `::amazon`
-syntax on its own, and without it the directive reaches the page as literal
-text. Sites that only convert bare Amazon URLs (`bareUrls: true`) do not need
-it.
-
-Astro 4 and newer are supported.
-
-### Sites that declare `markdown.processor`
-
-Astro 7's native Markdown processor runs no remark or rehype plugins, so a site
-whose Markdown depends on them declares the unified processor itself:
-
-```js
-import { createRemarkAmazon } from 'astro-affiliate-card/remark'
+import { createRemarkAmazon } from 'remark-affiliate-card'
 
 markdown: {
   processor: unified({
@@ -62,22 +59,17 @@ markdown: {
 }
 ```
 
-An integration cannot add to a list the site constructs, so `affiliateCard()`
-does nothing useful there — the directives render as literal text, with no
-error.
-
-**Import the stylesheet yourself in this case.** `createRemarkAmazon()` is a
-remark plugin; only the integration can inject CSS. Without this the cards
-render unstyled:
+`createRemarkAmazon()` reads the product data and the credentials for you and
+returns the `[plugin, options]` pair. Import the stylesheet yourself:
 
 ```css
-@import "astro-affiliate-card/card.css";
+@import "remark-affiliate-card/card.css";
 ```
 
 ## Configure
 
 ```js
-affiliateCard({
+createRemarkAmazon({
   dataFile: 'src/data/amazon-products.json',
   labels: {
     kicker: 'PR',          // overrides the brand; see Disclosure below
@@ -196,7 +188,7 @@ class:
 
 ```js
 // for a site with `.custom-md a:not(.no-styling) { … }`
-affiliateCard({ labels: { linkClass: 'no-styling' } })
+createRemarkAmazon({ labels: { linkClass: 'no-styling' } })
 ```
 
 ## Bare Amazon URLs
@@ -212,8 +204,8 @@ change, and it should be a decision rather than a surprise after an upgrade.
 Every layer is exported, so you can render a card outside the remark pipeline:
 
 ```js
-import { renderAmazonCard } from 'astro-affiliate-card/card'
-import { resolveShopLinks } from 'astro-affiliate-card/shops'
+import { renderAmazonCard } from 'remark-affiliate-card/card'
+import { resolveShopLinks } from 'remark-affiliate-card/shops'
 
 const links = resolveShopLinks('メダリスト ジェル', { rakutenAffiliateId: '…' })
 const html = renderAmazonCard({ url, title, price }, links)

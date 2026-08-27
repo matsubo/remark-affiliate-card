@@ -1,7 +1,8 @@
 # CLAUDE.md
 
-Astro integration that renders Amazon / Rakuten / Yahoo! affiliate product cards.
-Four sites install it; a broken release breaks all four at once.
+remark plugin that renders Amazon / Rakuten / Yahoo! affiliate product cards.
+Five sites install it (impreza-gdb, blog, zc33s, je1wfv, triathlon); a broken
+release breaks all five at once.
 
 ## Commands
 
@@ -51,27 +52,17 @@ If the hooks stop firing, `git config core.hooksPath` should read `.husky/_`;
 ## CI
 
 `.github/workflows/ci.yml` runs on every push to main and every PR: Biome, then
-typecheck + coverage + build, then a typecheck against each Astro major the
-peer range claims. Action versions are pinned by SHA.
+typecheck + coverage + build. Action versions are pinned by SHA.
 
 ## Dependencies
 
-- **Keep the peer range as wide as the code actually supports.** The only Astro
-  import is `type { AstroIntegration }`; the hook uses `config.root`,
-  `updateConfig`, `injectScript` and `logger` — all stable since Astro 3, none
-  of it touched by a major. So the range is `>=4.0.0`, with no upper bound: a
-  new Astro major is supported the day it ships, without a release here.
-  The `astro-peer-range` CI job typechecks the floor, every major since, and
-  `latest`, weekly as well as on every push — that job going red is the signal
-  to add an upper bound, not a reason to have had one all along. Astro 2 is the
-  first that genuinely fails (no `logger` on the hook, no `config.root`).
-- **Astro is an optional peer.** `import type { AstroIntegration }` erases at
-  build, so `dist/index.js` never imports astro and the integration is a
-  duck-typed object; the `./card`, `./shops` and `./remark` entries and the bin
-  are plain unified/Node. Only `dist/index.d.ts` names astro. Left as a
-  required peer, npm 7+ and bun auto-install it, so a non-Astro consumer of
-  those entries drags all of Astro in for nothing. Optional does not weaken the
-  range above — `astro-peer-range` still typechecks against every major.
+- **Nothing here depends on Astro.** The only external runtime import in the
+  package is `unist-util-visit`, in `dist/remark.js`; everything else is
+  `node:fs` / `node:path`. The entry point default-exports the remark plugin.
+  Astro sites are still the audience, but they consume it as a plugin through
+  `createRemarkAmazon`, which is why there is no integration and no astro peer.
+- `unified` and `@types/mdast` are runtime `dependencies`, not devDependencies:
+  `dist/remark.d.ts` names both, so they have to reach a consumer's node_modules.
 - `remark-directive` is an optional peer, not a dependency: it parses
   `::amazon`, Astro does not enable it, and a site using only `bareUrls` never
   parses a directive at all.
@@ -102,13 +93,13 @@ Checklist for a release:
 Verify the three stay in step:
 
 ```sh
-npm view astro-affiliate-card versions --json   # published versions
+npm view remark-affiliate-card versions --json   # published versions
 gh release list                                 # GitHub releases
 git tag --sort=v:refname                        # tags
 ```
 
 To find which commit a published version came from:
-`npm view astro-affiliate-card@X.Y.Z gitHead`.
+`npm view remark-affiliate-card@X.Y.Z gitHead`.
 
 ## Conventions
 

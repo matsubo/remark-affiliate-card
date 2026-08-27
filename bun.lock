@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "astro-affiliate-card",
+      "name": "remark-affiliate-card",
       "dependencies": {
         "@types/mdast": "^4.0.4",
         "unified": "^11.0.5",

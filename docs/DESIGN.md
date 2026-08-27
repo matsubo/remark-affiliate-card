@@ -1,6 +1,6 @@
-# astro-affiliate-card — Design
+# remark-affiliate-card — Design
 
-An Astro integration that renders Amazon / Rakuten / Yahoo! affiliate product
+A remark plugin that renders Amazon / Rakuten / Yahoo! affiliate product
 cards, shared by `zc33s`, `triathlon`, `blog` and `impreza-gdb`.
 
 ## Why
@@ -21,8 +21,8 @@ Total cards in use: 1,451 (zc33s 726, triathlon 432, blog 242, impreza-gdb 51).
 
 ## Scope
 
-In scope: card rendering, shop URL construction, the Astro integration, the
-shipped stylesheet, and the Creators API client plus its sync CLI.
+In scope: card rendering, shop URL construction, the shipped stylesheet, and
+the Creators API client plus its sync CLI.
 
 Out of scope: anything resembling `build-amazon-products.mjs`, the destructive
 rebuild that triathlon's docs explicitly warn against. The sync CLI only ever
@@ -45,7 +45,7 @@ lifetime. Nothing is persisted to disk, so the package needs no token state.
 
 ```
 src/
-  index.ts      Astro integration (default export)
+  index.ts      Entry point: default-exports the remark plugin, re-exports the rest
   card.ts       renderAmazonCard() and its types
   shops.ts      Rakuten / Yahoo! / beacon URL builders (pure)
   remark.ts     ::amazon directive -> card HTML
@@ -112,29 +112,45 @@ properties, so a site re-skins the card by overriding variables rather than
 by forking the markup. That is how one shared stylesheet and four distinct
 site identities coexist.
 
-## Integration
+## Using it from Astro
+
+Astro 7's native Markdown processor runs no remark or rehype plugins, so a
+site whose Markdown depends on them declares the unified processor itself and
+lists every plugin, this one included:
 
 ```js
-import affiliateCard from 'astro-affiliate-card'
+// astro.config.mjs
+import { createRemarkAmazon } from 'remark-affiliate-card'
 
-export default defineConfig({
-  integrations: [affiliateCard({ dataFile: 'src/data/amazon-products.json' })],
-})
+markdown: {
+  processor: unified({
+    remarkPlugins: [remarkDirective, createRemarkAmazon(), /* … */],
+  }),
+}
 ```
 
-The integration registers the remark plugin and injects the stylesheet.
+`createRemarkAmazon()` reads the product data and credentials once and returns
+the `[plugin, options]` pair — there is no integration left to do that for
+you, so the site imports it directly and puts it in the list itself.
 
-One mechanic needs verifying in a fixture rather than assumed: `impreza-gdb`'s
-plugin carries a comment that it "must precede remarkUnknownDirectives, which
-flattens unhandled directives to text". Whether a plugin added through
-`updateConfig` lands before a repository's own directive handlers is Astro
-ordering semantics, so it gets a test. If ordering cannot be guaranteed, the
-package also exports the remark plugin for explicit placement — two lines of
-configuration per repository instead of one is an acceptable price.
+The ordering question that used to need a fixture — whether a plugin an
+integration adds through `updateConfig` lands before a repository's own
+directive handlers — is gone along with the integration. The site now writes
+`remarkPlugins` itself, so it controls the order outright: place
+`createRemarkAmazon()` after `remark-directive` (which parses `::amazon`) and
+before any plugin that flattens unhandled directives to text, such as
+`impreza-gdb`'s `remarkUnknownDirectives`.
+
+Nothing injects the stylesheet either; a site imports
+`remark-affiliate-card/card.css` itself.
 
 Bare Amazon URLs are **not** auto-converted by default. `impreza-gdb` does
 this today, but enabling it everywhere would silently turn existing Amazon
 links in three sites' articles into cards. It becomes an opt-in flag.
+
+Astro caches rendered content, so a plugin change needs `astro build --force`
+to take effect — the same trap whether the plugin came from an integration or
+a hand-listed `remarkPlugins` array.
 
 ## Environment contract
 
@@ -155,6 +171,16 @@ unset — it works only because the hardcoded fallback happens to equal the
 real tag. That dead read goes away with the migration.
 
 ## Migration
+
+The package was published as `astro-affiliate-card` through 0.4.1. It was
+renamed to `remark-affiliate-card` and republished as 1.0.0 because, by that
+point, nothing it shipped depended on Astro: the only external runtime import
+was `unist-util-visit`, Astro appeared solely in an erased `import type`, and
+all five consuming sites had already moved onto `markdown.processor` and
+`createRemarkAmazon`, leaving the integration a no-op. What the package
+actually is, precisely, is a remark plugin, and the unified ecosystem's
+`remark-*` naming is how those get found. `astro-affiliate-card@0.4.1` stays
+on npm, permanently, for anyone still on Astro 4–6 who wants the integration.
 
 Fewest cards first, so a mistake is cheapest where it is most likely:
 
