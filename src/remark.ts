@@ -122,9 +122,9 @@ export const remarkAmazon: Plugin<[RemarkAmazonOptions], Root> = (options) => {
  *
  * Astro 7's default Markdown processor does not run remark/rehype plugins, so
  * a site that needs them declares `markdown.processor: unified({...})` and
- * lists the plugins itself. This package has no integration to fall back on —
- * a declared `markdown.processor` is the only way an Astro site gets this
- * plugin into its pipeline, which is what this factory is for.
+ * lists the plugins itself. This package has no integration to fall back on,
+ * so that declaration is how such a site gets this plugin into its pipeline —
+ * which is what this factory is for.
  *
  * Place it after remark-directive (which parses `::amazon`) and before any
  * plugin that flattens unhandled directives.

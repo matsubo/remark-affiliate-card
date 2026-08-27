@@ -81,7 +81,6 @@ createRemarkAmazon({
     linkClass: '',         // extra class on every anchor; see Styling below
   },
   bareUrls: false,         // also convert standalone Amazon URLs
-  injectStyles: true,
 })
 ```
 
