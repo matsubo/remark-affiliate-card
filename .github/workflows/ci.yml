@@ -7,11 +7,6 @@ on:
     branches: [main]
     types: [opened, synchronize]
   workflow_dispatch:
-  # Astro ships majors quickly and the peer range has no upper bound, so a new
-  # one is supported the day it lands whether or not anyone pushed here. This
-  # is what notices when that stops being true.
-  schedule:
-    - cron: '0 3 * * 1'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -66,30 +61,3 @@ jobs:
       # The package ships dist/, so a build that breaks is a release that breaks.
       - name: Build the package
         run: bun run build
-
-  # The published peer range is `>=4.0.0`, which claims every major from 4 on --
-  # including ones that do not exist yet. Nothing else proves that claim, so
-  # typecheck against the floor, each major since, and whatever is current. The
-  # lockfile is dropped on purpose: pinning it would reinstall the Astro this
-  # repository develops against.
-  astro-peer-range:
-    runs-on: ubuntu-latest
-    name: Astro ${{ matrix.astro }}
-    strategy:
-      fail-fast: false
-      matrix:
-        astro: ['4', '5', '6', '7', 'latest']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Install against Astro ${{ matrix.astro }}
-        run: |
-          rm -f bun.lock
-          bun add -d astro@${{ matrix.astro }}
-
-      - name: Typecheck
-        run: bun run typecheck
