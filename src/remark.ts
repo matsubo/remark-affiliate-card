@@ -129,7 +129,7 @@ export const remarkAmazon: Plugin<[RemarkAmazonOptions], Root> = (options) => {
  * plugin that flattens unhandled directives.
  *
  * ```js
- * import { createRemarkAmazon } from 'astro-affiliate-card/remark'
+ * import { createRemarkAmazon } from 'remark-affiliate-card'
  *
  * processor: unified({
  *   remarkPlugins: [remarkDirective, createRemarkAmazon(), parseDirectiveNode],

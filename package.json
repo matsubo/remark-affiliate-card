@@ -1,20 +1,24 @@
 {
-  "name": "astro-affiliate-card",
-  "version": "0.4.1",
-  "description": "Astro integration for Amazon / Rakuten / Yahoo! affiliate product cards",
+  "name": "remark-affiliate-card",
+  "version": "1.0.0",
+  "description": "remark plugin that renders Amazon / Rakuten / Yahoo! affiliate product cards",
   "keywords": [
-    "astro",
-    "astro-integration",
+    "remark",
+    "remark-plugin",
+    "unified",
+    "mdast",
+    "markdown",
     "affiliate",
     "amazon",
     "rakuten",
-    "yahoo"
+    "yahoo",
+    "astro"
   ],
   "license": "MIT",
   "author": "matsubo",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/matsubo/astro-affiliate-card.git"
+    "url": "git+https://github.com/matsubo/remark-affiliate-card.git"
   },
   "type": "module",
   "files": [
@@ -32,10 +36,6 @@
     "./shops": {
       "types": "./dist/shops.d.ts",
       "default": "./dist/shops.js"
-    },
-    "./remark": {
-      "types": "./dist/remark.d.ts",
-      "default": "./dist/remark.js"
     },
     "./card.css": "./dist/card.css"
   },
@@ -64,13 +64,9 @@
     "unist-util-visit": "^5.0.0"
   },
   "peerDependencies": {
-    "astro": ">=4.0.0",
     "remark-directive": "^4.0.0"
   },
   "peerDependenciesMeta": {
-    "astro": {
-      "optional": true
-    },
     "remark-directive": {
       "optional": true
     }
@@ -78,7 +74,6 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.10",
     "@types/bun": "^1.4.0",
-    "astro": "^7.2.7",
     "husky": "^9.1.7",
     "lint-staged": "^17.3.0",
     "mdast-util-directive": "^3.0.0",
