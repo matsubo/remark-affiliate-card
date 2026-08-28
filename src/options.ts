@@ -1,8 +1,12 @@
 // Shared resolution of everything the remark plugin needs.
 //
-// Two entry points need it: the Astro integration, and createRemarkAmazon()
-// for sites that declare `markdown.processor` explicitly and place plugins
-// themselves.
+// createRemarkAmazon() calls this to turn a site's AffiliateCardOptions into
+// the RemarkAmazonOptions the plugin itself takes. Reading .env, process.env
+// and the product JSON file lives here, in one place, so remarkAmazon stays
+// a pure function of already-resolved data — remark.test.ts builds
+// RemarkAmazonOptions by hand and never touches the environment or disk,
+// while this module's own tests are the ones that need a tmpdir root and
+// environment isolation.
 
 import { readFileSync } from 'node:fs'
 import { isAbsolute, join } from 'node:path'

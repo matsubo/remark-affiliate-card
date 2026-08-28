@@ -32,11 +32,20 @@ Any unified pipeline can use it:
 ```js
 import remarkDirective from 'remark-directive'
 import remarkParse from 'remark-parse'
-import affiliateCard from 'remark-affiliate-card'
+import { createRemarkAmazon } from 'remark-affiliate-card'
 import { unified } from 'unified'
 
-unified().use(remarkParse).use(remarkDirective).use(affiliateCard, options)
+unified()
+  .use(remarkParse)
+  .use(remarkDirective)
+  .use(...createRemarkAmazon(options))
 ```
+
+The default export is the raw remark plugin, but it expects already-resolved
+product data and credentials — nothing a consumer should assemble by hand.
+`createRemarkAmazon(options)` does that resolution and hands back a
+`[plugin, resolvedOptions]` pair, which is why it is spread into `.use()`
+here rather than passed as the plugin itself.
 
 `remark-directive` is yours to register: nothing parses `::amazon` on its own,
 and without it the directive reaches the page as literal text. Sites that only

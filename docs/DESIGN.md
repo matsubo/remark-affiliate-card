@@ -1,7 +1,7 @@
 # remark-affiliate-card — Design
 
 A remark plugin that renders Amazon / Rakuten / Yahoo! affiliate product
-cards, shared by `zc33s`, `triathlon`, `blog` and `impreza-gdb`.
+cards, shared by `zc33s`, `triathlon`, `blog`, `impreza-gdb` and `je1wfv`.
 
 ## Why
 
