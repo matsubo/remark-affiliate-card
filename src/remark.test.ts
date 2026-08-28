@@ -141,9 +141,9 @@ describe('remarkAmazon — shop search keyword', () => {
 })
 
 // The entry point for a site that declares `markdown.processor` itself. Astro 7
-// runs no remark plugins through its default processor, so three of the four
-// sites this package serves reach cards only through this call -- and it went
-// two releases without a test of its own.
+// runs no remark plugins through its default processor, so every site this
+// package serves reaches cards only through this call -- and it went two
+// releases without a test of its own.
 describe('createRemarkAmazon', () => {
   let root: string
   let savedTag: string | undefined
@@ -161,7 +161,7 @@ describe('createRemarkAmazon', () => {
     rmSync(root, { recursive: true, force: true })
   })
 
-  /** Resolution logs through the console when no Astro logger exists. */
+  /** Resolution logs through the console when no logger is supplied. */
   function quietly<T>(run: () => T): T {
     const originalLog = console.log
     const originalWarn = console.warn

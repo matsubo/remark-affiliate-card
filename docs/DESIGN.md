@@ -203,7 +203,8 @@ to take effect.
 
 Per repository: drop the `amazon:` entry from the rehype components map
 (keeping `remark-directive`), delete the old renderer and `amazon-creators`
-copy, and add the integration.
+copy, and register the plugin through `createRemarkAmazon` in the site's own
+`markdown.processor`.
 
 Article syntax does not change. `::amazon{asin="..."}` keeps working, so no
 content is rewritten — only the generated HTML and CSS change.

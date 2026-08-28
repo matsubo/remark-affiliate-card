@@ -79,7 +79,8 @@ published.
 
 Checklist for a release:
 
-1. Bump `version` in `package.json` (semver: `fix:` → patch, `feat:` → minor).
+1. Bump `version` in `package.json` (semver: `fix:` → patch, `feat:` → minor,
+   `feat!:` / `BREAKING CHANGE:` → major).
 2. Commit as `chore: release X.Y.Z`.
 3. Push the commit (ask the human first — pushing is never implicit).
 4. `npm publish` — `prepublishOnly` runs the lint, the typecheck, the coverage

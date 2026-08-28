@@ -39,7 +39,7 @@ describe('resolveOptions', () => {
     rmSync(root, { recursive: true, force: true })
   })
 
-  // Astro config runs before Vite injects import.meta.env, so an integration
+  // Astro config runs before Vite injects import.meta.env, so a plugin
   // that does not read .env itself sees no credentials at all.
   test('reads credentials from the project’s .env', () => {
     writeFileSync(
@@ -111,7 +111,7 @@ describe('resolveOptions', () => {
   })
 
   // Without a logger the messages have to reach the console prefixed, or a site
-  // owner cannot tell which integration is complaining.
+  // owner cannot tell which package is complaining.
   test('prefixes its own console output when no logger is supplied', () => {
     const logs: string[] = []
     const warns: string[] = []

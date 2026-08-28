@@ -59,6 +59,7 @@ the shape every site using this plugin is on:
 
 ```js
 // astro.config.mjs
+import { unified } from '@astrojs/markdown-remark'
 import { createRemarkAmazon } from 'remark-affiliate-card'
 
 markdown: {
