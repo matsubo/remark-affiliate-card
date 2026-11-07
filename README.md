@@ -91,6 +91,7 @@ createRemarkAmazon({
     linkClass: '',         // extra class on every anchor; see Styling below
   },
   bareUrls: false,         // also convert standalone Amazon URLs
+  showPrices: false,       // render stored prices; see Prices below
 })
 ```
 
@@ -148,19 +149,37 @@ shows above the title.
 
 ## What the card shows
 
-Image, brand, title, price, and a buy button — plus Rakuten and Yahoo! search
-links when those are configured.
+Image, brand, title, and a buy button — plus Rakuten and Yahoo! search links
+when those are configured.
 
 Deliberately absent by default:
 
+- **The price.** See [Prices](#prices).
 - **The ASIN.** It identifies the product to Amazon, not to a reader.
 - **The description.** Amazon's description is the same keyword-stuffed
   marketing copy as the title, so showing both doubles the noise.
 - **A full-length title.** Amazon titles run past 100 characters of search
-  terms; the card clamps to two lines so the price and the buy button stay
-  above the fold.
+  terms; the card clamps to two lines so the buy button stays above the fold.
 
-Each is available through `labels` for a site that wants it.
+The ASIN, the description and the title length are available through `labels`
+for a site that wants them.
+
+## Prices
+
+Off by default. `fetch` still stores `price` and `listPrice`, but the card
+renders them only with `showPrices: true`.
+
+Amazon's [Associates Program Policies](https://affiliate.amazon.co.jp/help/operating/policies)
+allow a price only when it came from the API, and non-image product content
+may be cached for at most 24 hours before it has to be refreshed. When it is
+refreshed less often than hourly, the price needs an as-of date and time next
+to it, plus Amazon's disclaimer. A product file committed to the repository and
+baked into static HTML is usually weeks old, so a price on the card is both out
+of date and outside the policy. The buy button takes the reader to the live
+price.
+
+Turn it on only if the site rebuilds from fresh data at least daily and adds
+the timestamp and disclaimer itself.
 
 ## Disclosure
 

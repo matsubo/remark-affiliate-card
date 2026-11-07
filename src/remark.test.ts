@@ -16,6 +16,7 @@ const products = {
     title: 'Mag-on エナジージェル グレープフルーツ味 12個入り',
     imageUrl: 'https://m.media-amazon.com/images/I/51.jpg',
     price: '￥3,059',
+    listPrice: '￥3,500',
     detailPageUrl: 'https://www.amazon.co.jp/dp/B00TQMO5E0?tag=triathlon01-22',
   },
 }
@@ -42,7 +43,21 @@ describe('remarkAmazon', () => {
     const html = render('::amazon{asin="B00TQMO5E0"}')
     expect(html).toContain('amazon-card')
     expect(html).toContain('Mag-on エナジージェル')
+  })
+
+  // Stored prices go stale, and Amazon's policy forbids showing them past 24
+  // hours; a site has to opt in knowing its data is fresh.
+  test('omits the price and list price unless showPrices is set', () => {
+    const html = render('::amazon{asin="B00TQMO5E0"}')
+    expect(html).not.toContain('￥3,059')
+    expect(html).not.toContain('￥3,500')
+    expect(html).not.toContain('amazon-card__readout')
+  })
+
+  test('renders the price and list price with showPrices: true', () => {
+    const html = render('::amazon{asin="B00TQMO5E0"}', { showPrices: true })
     expect(html).toContain('￥3,059')
+    expect(html).toContain('￥3,500')
   })
 
   // The directive must not survive into the output as literal text, which is
@@ -183,9 +198,8 @@ describe('createRemarkAmazon', () => {
     expect(options.affiliateTag).toBe('triathlon01-22')
   })
 
-  test('renders a card inside a processor that places the plugin itself', () => {
-    const configured = quietly(() => createRemarkAmazon({ root, dataFile: 'products.json' }))
-    const html = String(
+  function renderWith(configured: readonly [typeof remarkAmazon, RemarkAmazonOptions]): string {
+    return String(
       unified()
         .use(remarkParse)
         .use(remarkGfm)
@@ -195,9 +209,21 @@ describe('createRemarkAmazon', () => {
         .use(rehypeStringify, { allowDangerousHtml: true })
         .processSync('::amazon{asin="B00TQMO5E0"}'),
     )
+  }
+
+  test('renders a card inside a processor that places the plugin itself', () => {
+    const html = renderWith(quietly(() => createRemarkAmazon({ root, dataFile: 'products.json' })))
 
     expect(html).toContain('Mag-on')
     expect(html).toContain('tag=triathlon01-22')
     expect(html).not.toContain('::amazon')
+    expect(html).not.toContain('￥3,059')
+  })
+
+  test('renders prices when the site opts in with showPrices', () => {
+    const html = renderWith(
+      quietly(() => createRemarkAmazon({ root, dataFile: 'products.json', showPrices: true })),
+    )
+    expect(html).toContain('￥3,059')
   })
 })

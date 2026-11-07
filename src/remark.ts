@@ -50,20 +50,34 @@ export interface RemarkAmazonOptions {
    * which is a content change a site should opt into deliberately.
    */
   bareUrls?: boolean
+  /**
+   * Render the price and list price from the product data.
+   *
+   * Off by default: Amazon's Associates policy allows a price only when it
+   * came from the API within the last 24 hours, with an as-of timestamp when
+   * refreshed less than hourly. A product file baked into static HTML is
+   * usually far older than that.
+   */
+  showPrices?: boolean
 }
 
 function fallbackUrl(asin: string, tag: string): string {
   return `https://www.amazon.co.jp/dp/${asin}?tag=${tag}&linkCode=ogi&th=1&psc=1`
 }
 
-function toCardData(asin: string, product: ProductRecord | undefined, tag: string): AmazonCardData {
+function toCardData(
+  asin: string,
+  product: ProductRecord | undefined,
+  tag: string,
+  showPrices: boolean,
+): AmazonCardData {
   return {
     url: product?.detailPageUrl || fallbackUrl(asin, tag),
     asin,
     ...(product?.title !== undefined ? { title: product.title } : {}),
     ...(product?.imageUrl !== undefined ? { image: product.imageUrl } : {}),
-    ...(product?.price !== undefined ? { price: product.price } : {}),
-    ...(product?.listPrice !== undefined ? { listPrice: product.listPrice } : {}),
+    ...(showPrices && product?.price !== undefined ? { price: product.price } : {}),
+    ...(showPrices && product?.listPrice !== undefined ? { listPrice: product.listPrice } : {}),
     ...(product?.description !== undefined ? { description: product.description } : {}),
     ...(product?.rating !== undefined ? { rating: product.rating } : {}),
     ...(product?.reviewCount !== undefined ? { reviewCount: product.reviewCount } : {}),
@@ -72,11 +86,18 @@ function toCardData(asin: string, product: ProductRecord | undefined, tag: strin
 }
 
 export const remarkAmazon: Plugin<[RemarkAmazonOptions], Root> = (options) => {
-  const { products, affiliateTag, credentials, labels, bareUrls = false } = options
+  const {
+    products,
+    affiliateTag,
+    credentials,
+    labels,
+    bareUrls = false,
+    showPrices = false,
+  } = options
 
   const cardHtml = (asin: string, kw?: string): string => {
     const product = products[asin]
-    const data = toCardData(asin, product, affiliateTag)
+    const data = toCardData(asin, product, affiliateTag, showPrices)
     // A part number identifies the product across retailers; the title is a
     // marketing string that over-specifies a shop search into zero hits.
     const keyword = deriveSearchKeyword({ kw, product, title: product?.title })

@@ -26,6 +26,8 @@ export interface AffiliateCardOptions {
   labels?: CardLabels
   /** Also turn standalone bare Amazon URLs into cards. Off by default. */
   bareUrls?: boolean
+  /** Render prices from the product data. Off by default; see the README. */
+  showPrices?: boolean
   /**
    * Overrides for the credentials otherwise read from the environment.
    * Useful in tests, or for a site that keeps secrets somewhere else.
@@ -97,6 +99,7 @@ export function resolveOptions(
     root = process.cwd(),
     labels,
     bareUrls = false,
+    showPrices = false,
     credentials = {},
   } = options
 
@@ -132,5 +135,6 @@ export function resolveOptions(
     credentials: shopCredentials,
     ...(labels !== undefined ? { labels } : {}),
     bareUrls,
+    showPrices,
   }
 }
