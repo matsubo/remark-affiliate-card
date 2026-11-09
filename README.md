@@ -118,14 +118,19 @@ bunx affiliate-card fetch
 ```
 
 Scans your posts for ASINs, asks the Creators API about the ones that are new
-or older than 90 days, and writes `src/data/amazon-products.json`. Commit that
+or older than 14 days, and writes `src/data/amazon-products.json`. Commit that
 file: it is both the build's data source and its own cache.
 
 ```
---posts <dir>   posts to scan  (default src/content/posts)
---out <file>    product file   (default src/data/amazon-products.json)
---force         refetch everything, ignoring cache freshness
+--posts <dir>     posts to scan  (default src/content/posts)
+--out <file>      product file   (default src/data/amazon-products.json)
+--max-age <days>  refetch entries older than this (default 14)
+--force           refetch everything, ignoring cache freshness
 ```
+
+Amazon's policy caps cached product content at 24 hours. A site that wants to
+stay inside that runs the command at least daily with `--max-age 1` and
+rebuilds afterwards.
 
 **An ASIN the API stops resolving keeps whatever was captured when it still
 existed.** Products get delisted and never come back, and overwriting those

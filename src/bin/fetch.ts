@@ -12,13 +12,14 @@ import { extractAsinsFromPosts } from '../creators/asins.js'
 import { createClient } from '../creators/client.js'
 import { loadConfig } from '../creators/config.js'
 import type { CreatorsProduct } from '../creators/parse.js'
-import { syncProducts } from '../creators/sync.js'
+import { DEFAULT_MAX_AGE_DAYS, syncProducts } from '../creators/sync.js'
 import { createTokenManager } from '../creators/token.js'
 
 interface Options {
   postsDir: string
   outFile: string
   force: boolean
+  maxAgeDays: number
 }
 
 function parseArgs(argv: readonly string[]): Options {
@@ -26,6 +27,7 @@ function parseArgs(argv: readonly string[]): Options {
     postsDir: 'src/content/posts',
     outFile: 'src/data/amazon-products.json',
     force: false,
+    maxAgeDays: DEFAULT_MAX_AGE_DAYS,
   }
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -33,14 +35,25 @@ function parseArgs(argv: readonly string[]): Options {
     if (arg === '--force') options.force = true
     else if (arg === '--posts') options.postsDir = argv[++i] ?? options.postsDir
     else if (arg === '--out') options.outFile = argv[++i] ?? options.outFile
-    else if (arg === '--help' || arg === '-h') {
+    else if (arg === '--max-age') {
+      const value = argv[++i]
+      const days = Number(value)
+      // Number('') is 0 and Number(undefined) is NaN; both would silently mean
+      // "refetch everything" or "never refetch", so neither is accepted.
+      if (!value || !Number.isFinite(days) || days <= 0) {
+        console.error(`--max-age needs a positive number of days, got ${value ?? 'nothing'}`)
+        process.exit(1)
+      }
+      options.maxAgeDays = days
+    } else if (arg === '--help' || arg === '-h') {
       console.log(
         [
           'Usage: affiliate-card fetch [options]',
           '',
-          '  --posts <dir>   posts to scan   (default src/content/posts)',
-          '  --out <file>    product file    (default src/data/amazon-products.json)',
-          '  --force         refetch everything, ignoring cache freshness',
+          '  --posts <dir>     posts to scan   (default src/content/posts)',
+          '  --out <file>      product file    (default src/data/amazon-products.json)',
+          `  --max-age <days>  refetch entries older than this (default ${DEFAULT_MAX_AGE_DAYS})`,
+          '  --force           refetch everything, ignoring cache freshness',
           '',
           'Credentials come from .env or the environment:',
           '  AMAZON_CREATOR_CREDENTIAL_ID, AMAZON_CREATOR_SECRET, AMAZON_AFFILIATE_TAG',
@@ -116,6 +129,7 @@ async function main(): Promise<void> {
     }),
     partnerTag: config.partnerTag,
     force: options.force,
+    maxAgeDays: options.maxAgeDays,
     log: (message) => console.log(message),
   })
 

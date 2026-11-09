@@ -4,6 +4,7 @@ import type { CreatorsProduct } from './parse.js'
 import { syncProducts } from './sync.js'
 
 const TAG = 'triathlon01-22'
+const DAY_MS = 24 * 60 * 60 * 1000
 
 function product(title: string): CreatorsProduct {
   return {
@@ -113,15 +114,42 @@ describe('syncProducts', () => {
     expect(result.cached).toBe(1)
   })
 
-  test('refetches an entry older than the cache lifetime', async () => {
-    const ninetyOneDays = 91 * 24 * 60 * 60 * 1000
-    const existing = { B00TQMO5E0: { ...product('stale'), fetchedAt: 0 } }
+  test('reuses an entry younger than the default 14 days', async () => {
+    const thirteenDays = 13 * DAY_MS
+    const existing = { B00TQMO5E0: { ...product('cached'), fetchedAt: 1 } }
     const result = await syncProducts({
       asins: ['B00TQMO5E0'],
       existing,
       client: clientResolving({ B00TQMO5E0: product('refreshed') }),
       partnerTag: TAG,
-      now: () => ninetyOneDays,
+      now: () => 1 + thirteenDays,
+    })
+    expect(result.products.B00TQMO5E0?.title).toBe('cached')
+    expect(result.cached).toBe(1)
+  })
+
+  test('refetches an entry older than the default 14 days', async () => {
+    const fifteenDays = 15 * DAY_MS
+    const existing = { B00TQMO5E0: { ...product('stale'), fetchedAt: 1 } }
+    const result = await syncProducts({
+      asins: ['B00TQMO5E0'],
+      existing,
+      client: clientResolving({ B00TQMO5E0: product('refreshed') }),
+      partnerTag: TAG,
+      now: () => 1 + fifteenDays,
+    })
+    expect(result.products.B00TQMO5E0?.title).toBe('refreshed')
+  })
+
+  test('maxAgeDays overrides the default cache lifetime', async () => {
+    const existing = { B00TQMO5E0: { ...product('stale'), fetchedAt: 1 } }
+    const result = await syncProducts({
+      asins: ['B00TQMO5E0'],
+      existing,
+      client: clientResolving({ B00TQMO5E0: product('refreshed') }),
+      partnerTag: TAG,
+      now: () => 1 + 2 * DAY_MS,
+      maxAgeDays: 1,
     })
     expect(result.products.B00TQMO5E0?.title).toBe('refreshed')
   })

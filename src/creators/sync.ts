@@ -7,7 +7,17 @@ import type { CreatorsClient } from './client.js'
 import { type CreatorsProduct, resolveMissing } from './parse.js'
 import { chunk, isSystemicFailure, MAX_ITEMS_PER_REQUEST } from './request.js'
 
-const CACHE_TTL_MS = 90 * 24 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * How long a fetched product is reused before the next sync asks the API again.
+ *
+ * Two weeks keeps a site that syncs on a schedule reasonably close to Amazon's
+ * listing without spending its request allowance re-fetching unchanged
+ * products; Amazon's own limit for cached product content is far shorter, so a
+ * site that needs to meet it passes a smaller `maxAgeDays`.
+ */
+export const DEFAULT_MAX_AGE_DAYS = 14
 
 export interface SyncOptions {
   /** ASINs referenced by the posts. */
@@ -19,6 +29,8 @@ export interface SyncOptions {
   now?: () => number
   /** Refetch everything, ignoring cache freshness. */
   force?: boolean
+  /** Days a fetched entry stays fresh. Defaults to {@link DEFAULT_MAX_AGE_DAYS}. */
+  maxAgeDays?: number
   log?: (message: string) => void
 }
 
@@ -31,12 +43,22 @@ export interface SyncResult {
   systemicFailure: boolean
 }
 
-function isFresh(entry: CreatorsProduct | undefined, now: number): boolean {
-  return Boolean(entry?.title && entry.fetchedAt && now - entry.fetchedAt < CACHE_TTL_MS)
+function isFresh(entry: CreatorsProduct | undefined, now: number, maxAgeMs: number): boolean {
+  return Boolean(entry?.title && entry.fetchedAt && now - entry.fetchedAt < maxAgeMs)
 }
 
 export async function syncProducts(options: SyncOptions): Promise<SyncResult> {
-  const { asins, existing, client, partnerTag, now = Date.now, force = false, log } = options
+  const {
+    asins,
+    existing,
+    client,
+    partnerTag,
+    now = Date.now,
+    force = false,
+    maxAgeDays = DEFAULT_MAX_AGE_DAYS,
+    log,
+  } = options
+  const maxAgeMs = maxAgeDays * DAY_MS
   const timestamp = now()
 
   // Entries the posts no longer reference are carried over untouched. Pruning
@@ -47,7 +69,7 @@ export async function syncProducts(options: SyncOptions): Promise<SyncResult> {
   let cached = 0
 
   for (const asin of asins) {
-    if (!force && isFresh(existing[asin], timestamp)) {
+    if (!force && isFresh(existing[asin], timestamp, maxAgeMs)) {
       cached += 1
       continue
     }

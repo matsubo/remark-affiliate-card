@@ -50,6 +50,21 @@ describe('affiliate-card fetch', () => {
     expect((await run(cwd, ['-h'])).exitCode).toBe(0)
   })
 
+  // A typo here must not silently turn into "refetch everything" or "never
+  // refetch" on a scheduled run.
+  for (const args of [
+    ['--max-age', 'abc'],
+    ['--max-age', '0'],
+    ['--max-age', '-3'],
+    ['--max-age'],
+  ]) {
+    test(`rejects ${args.join(' ')}`, async () => {
+      const { stderr, exitCode } = await run(cwd, args)
+      expect(exitCode).toBe(1)
+      expect(stderr).toContain('--max-age needs a positive number of days')
+    })
+  }
+
   // A scheduled workflow has to fail visibly when its secrets are gone, rather
   // than writing an empty product file.
   test('exits non-zero and names what is missing without any credentials', async () => {
